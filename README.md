@@ -4,7 +4,7 @@ An automated looping script designed to calculated hypoxia statistics from respi
 ## Problem 1: I needed to be able to analyze data from dozens of individuals at once measured simultaneously on a plate respirometer. 
 Per individual organism, I needed to be able to calculate multiple statistics that estimate tolerance to decreasing oxygen in the environment. 
 
-These included: Alpha, *P*crit (segmented broken stick), non-linear *P*crit (NLR), and regulation index (RI). 
+These included: Alpha, *P*<sub>crit</sub> (segmented broken stick), non-linear *P*crit (NLR), and regulation index (RI). 
 
 I also needed to generate multiple graphs showing these calculations on a per individual basis in a way that I could quickly scroll through them. 
 
