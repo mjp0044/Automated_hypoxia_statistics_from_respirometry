@@ -13,11 +13,7 @@ These included:
 I also needed to generate *multiple* graphs showing these calculations on a per individual basis in a way that I could quickly scroll through them. 
 
 ## Problem 2: I needed an automated way to standardize the respirometry data to help improve consistency in my calculations. 
-Not all individuals consume oxygen at the same rate. 
-
-The statistics I calculate use the entire curve of oxygen consumption, from normoxia to when the organisms stops actively respiring. 
-
-So, I need to trim noisy data from the start of runs and find the point at which oxygen consumption stops on a per individual basis. 
+Not all individuals consume oxygen at the same rate. The statistics I calculate use the entire curve of oxygen consumption, from normoxia to when the organisms stops actively respiring. So, I need to trim noisy data from the start of runs and find the point at which oxygen consumption stops on a per individual basis. 
 
 ### I generated a script that takes care of these issues with one click. 
 The script called `placeholder ` is available in this repository, along with sample data called `example_resp_data.csv`. 
