@@ -1,4 +1,4 @@
-# Automated_hypoxia_statistics_from_respirometry_data
+# Automated hypoxia statistics from respirometry data
 An automated looping script designed to calculated hypoxia statistics from respirometry plates with multiple organisms per plate
 
 ## Problem 1: I needed to be able to analyze data from dozens of individuals at once measured simultaneously on a plate respirometer. 
