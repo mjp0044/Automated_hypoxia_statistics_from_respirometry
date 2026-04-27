@@ -20,7 +20,7 @@ For extra information on what these statistics are and represent, check the drop
  - Non-linear *P*<sub>crit</sub>: A form of calculating *P*<sub>crit</sub> using non-linear regression. Typically, *P*<sub>crit</sub> is calculated using linear equations, where the data ends up looking like a broken stick. Non-linear *P*<sub>crit</sub> identifies *P*<sub>crit</sub> at a predifined part of the slope of a curve instead. 
 
  - Regulation index (RI): Captures an organism's abilityt to regulate oxygen across all oxygen values from normoxia to anoxia instead of estimating a single breakpoint, like *P*<sub>crit</sub> or Alpha.
- - 
+   
 </details>
 
 
