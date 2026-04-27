@@ -31,6 +31,6 @@ I also needed to generate *multiple* graphs showing these calculations on a per 
 Not all individuals consume oxygen at the same rate. The statistics I calculate use the entire curve of oxygen consumption, from normoxia to when the organisms stops actively respiring. So, I need to trim noisy data from the start of runs and find the point at which oxygen consumption stops on a per individual basis. 
 
 ### I generated a script that takes care of these issues with one click. 
-The script called `placeholder ` is available in this repository, along with sample data called `example_resp_data.csv`. 
+The script called `Combined Resp Script.R ` is available in this repository, along with sample data called `example_resp_data.csv`. 
 
 Below, let's walk through how to set up data to use this script and what it does. 
