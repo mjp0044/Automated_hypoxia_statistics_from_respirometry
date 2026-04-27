@@ -12,7 +12,7 @@ These included:
 
 For extra information on what these statistics are and represent, check the dropdown box below. 
 <details>
-<summary>Raw data snapshot (R)</summary>
+<summary>Hypoxia statistics glossary</summary>
  
  - Alpha: Alternatively known as the oxygen supply capacity. This represents the supply of oxygen needed to support a given metabolic rate. 
  
