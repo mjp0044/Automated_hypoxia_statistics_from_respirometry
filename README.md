@@ -1,7 +1,7 @@
 # Automated hypoxia statistics from respirometry data
 An automated looping script designed to calculated hypoxia statistics from respirometry plates with multiple organisms per plate
 
-<img src="Figures/02-28-23 722 UNIQUE.jpg" width="600">
+<img src="Figures/02-28-23 722 full.jpg" width="600">
 A typical round of oxygen consumption on a plate respirometer. Each line represents a single organism in a single well on the plate.
 
 ## Problem 1: I needed to be able to analyze data from dozens of individuals at once measured simultaneously on a plate respirometer. 
