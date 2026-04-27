@@ -37,3 +37,23 @@ Not all individuals consume oxygen at the same rate. The statistics I calculate 
 The script called `Combined Resp Script.R ` is available in this repository, along with sample data called `example_resp_data.csv`. 
 
 Below, let's walk through how to set up data to use this script and what it does. 
+
+First, we'll go through the required packages:
+
+```r
+#load required packages
+library(MESS) #data wrangling and modeling
+library(stats) #data wrangling and modeling
+library(respirometry) #pcrit, alpha, nlr (MUST USE VERSION 1.3.0, NEWER VERSIONS PRODUCE ERRORS)
+library(ggpubr) #Also loads basic ggplot2
+library(cowplot) #Pretty ggplots!
+library(reshape2) #Data wrangling
+library(dplyr) #Data wrangling
+library(tidyverse) #Data wrangling
+library(stringr) #data wrangling for splitting column characters
+library(MetBrewer) #Pretty colors!
+library(runner) #Do functions on sliding windows of data
+library(presens) #O2 conversion using presens package
+```
+
+Some of the packages that will be doing heavy lifting in our script are `respirometry`, which we need to calculate Alpha and *P*<sub>crit</sub>, `runner`, which we need to estimate the point at which organisms stop respiring, and `presens` which has automated functions for converting oxygen units. The rest are preffered packages I use for data wrangling and plotting. 
