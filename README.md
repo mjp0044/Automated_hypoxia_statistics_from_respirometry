@@ -17,13 +17,13 @@ For extra information on what these statistics are and represent, check the drop
 <details>
 <summary>Hypoxia statistics glossary</summary>
  
- - Alpha: Alternatively known as the oxygen supply capacity. This represents the supply of oxygen needed to support a given metabolic rate. 
+ - **Alpha**: Alternatively known as the oxygen supply capacity. This represents the supply of oxygen needed to support a given metabolic rate. 
  
- - *P*<sub>crit</sub>: Perhaps the most widely used statistic for estimating how tolerant an organism is to hypoxia. It is also known as critical oxygen tension. It represents the point at which an organism can no longer actively control its respiratory rate as oxygen is depleted. *P*<sub>crit</sub> and Alpha are on the same scale (units of oxygen partial pressure), where lower values are associated with increased tolerance. In fact, *P*<sub>crit</sub> is the breakpoint at which alpha reaches is maximum value. Oxygen levels below this breakdown becomes a limiting factor during respiration. 
+ - ***P*<sub>crit</sub>**: Perhaps the most widely used statistic for estimating how tolerant an organism is to hypoxia. It is also known as critical oxygen tension. It represents the point at which an organism can no longer actively control its respiratory rate as oxygen is depleted. *P*<sub>crit</sub> and Alpha are on the same scale (units of oxygen partial pressure), where lower values are associated with increased tolerance. In fact, *P*<sub>crit</sub> is the breakpoint at which alpha reaches is maximum value. Oxygen levels below this breakdown becomes a limiting factor during respiration. 
  
- - Non-linear *P*<sub>crit</sub>: A form of calculating *P*<sub>crit</sub> using non-linear regression. Typically, *P*<sub>crit</sub> is calculated using linear equations, where the data ends up looking like a broken stick. Non-linear *P*<sub>crit</sub> identifies *P*<sub>crit</sub> at a predifined part of the slope of a curve instead. 
+ - **Non-linear *P*<sub>crit</sub>**: A form of calculating *P*<sub>crit</sub> using non-linear regression. Typically, *P*<sub>crit</sub> is calculated using linear equations, where the data ends up looking like a broken stick. Non-linear *P*<sub>crit</sub> identifies *P*<sub>crit</sub> at a predifined part of the slope of a curve instead. 
 
- - Regulation index (RI): Captures an organism's abilityt to regulate oxygen across all oxygen values from normoxia to anoxia instead of estimating a single breakpoint, like *P*<sub>crit</sub> or Alpha.
+ - **Regulation index (RI)**: Captures an organism's abilityt to regulate oxygen across all oxygen values from normoxia to anoxia instead of estimating a single breakpoint, like *P*<sub>crit</sub> or Alpha.
    
 </details>
 
@@ -88,6 +88,10 @@ The script is set up to automatically standardize metabolic rate data by any des
 
 This data needs to be in a simple two column format where the first column is named `ID` and the second column can have whatever name you choose. 
 
+The `ID` column should contain sample names in the format matching the column name format in the main respirometry data file. 
+
+For simplicity, the script is set up to automatically query this list of data to find matching values to the respirometry data. This means that you can read in the data from one respirometry run at a time without having to reload the length or mass data frame. 
+
 ```r
 > head(datum)
       ID Totlen
@@ -99,3 +103,21 @@ This data needs to be in a simple two column format where the first column is na
 6 FSD.22  1.463
 ```
 
+## Reading in data
+
+Reading the data into R is the only manual part of the script, but this could be automated if desired. 
+
+The first data read in is the length or mass data. Here, we used body length. 
+
+```r
+#The mass or length MUST be in the second column for this to work as desired. The sample column MUST be titled "ID"
+  datum = read.csv(file="Length data for R.csv", header=TRUE)
+```
+
+Next, we select the respiromtry file of our choosing using a blank `file.choose()` call so that you can select the desired file in your device's file browser. 
+```r
+#Data read-in for respirometry data file (should pop up window to select .csv file)
+  dat=read.csv(file.choose())
+```
+
+NOTE: This could be modified to loop over many files in a directory, if desired. For my purposes, I needed to work with one respirometer plate run at a time to trouble shoot our respirometer or inspect, so it made more sense to operate at the single file level. 
