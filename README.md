@@ -5,8 +5,8 @@ For context, a
 
 <table>
   <tr>
-    <td><img src="Figures/Plate.jpg" width="350"></td>
-    <td><img src="Figures/Well.jpg" width="350"></td>
+    <td><img src="Figures/Plate.jpg" width="300"></td>
+    <td><img src="Figures/Well.jpg" width="200"></td>
   </tr>
 </table>
 
