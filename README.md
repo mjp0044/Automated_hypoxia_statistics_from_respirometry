@@ -67,24 +67,17 @@ The script is set up to handle respirometry data in a simple, but specific forma
 - Blanks must be denoted using the same pattern, in the format `blank.1`
 - The first column is named `time.sec` and contains the respirometry run time in seconds (this can be modified if desired, as we wlll go over below)
 
-Here is a snapshot of the data in its proper format in the dropdown below:
+Here is a snapshot of the first 10 columns of the example data in its proper format in the dropdown below:
 
-<details>
+
  ```r
- >   head(dat) #View top of data frame to check contents
-  time.sec MSH.1 FSH.1 FSH.2 blank.1 blank.2 blank.3 FSH.3 MSH.3 FSH.4 MSH.5 FSH.5 FSH.6 MBR.39 MBR.40 MBR.53 FBR.53 MBR.54 FBR.54 MBR.56 FBR.47
-1        0 6.789 6.408 6.328   7.636   7.696   7.639 6.617 6.998 6.555 6.595 6.501 6.953  7.308  7.057  7.279  6.990  7.208  7.057  7.036  6.899
-2      300 6.745 6.293 6.142   7.606   7.651   7.639 6.544 6.984 6.484 6.609 6.444 6.909  7.264  6.998  7.205  6.918  7.136  6.983  6.946  6.783
-3      600 6.686 6.251 6.042   7.576   7.666   7.609 6.458 6.881 6.370 6.537 6.373 6.778  7.234  6.940  7.161  6.889  7.078  6.910  6.901  6.726
-4      900 6.657 6.194 5.971   7.606   7.666   7.594 6.385 6.881 6.327 6.465 6.289 6.734  7.205  6.925  7.146  6.774  7.049  6.881  6.901  6.682
-5     1200 6.555 6.109 5.844   7.576   7.636   7.624 6.270 6.852 6.256 6.351 6.148 6.705  7.161  6.881  7.102  6.774  7.020  6.837  6.871  6.639
-6     1500 6.570 6.052 5.830   7.606   7.651   7.609 6.227 6.779 6.228 6.308 6.190 6.632  7.190  6.881  7.087  6.702  6.962  6.779  6.827  6.582
-  MBR.47 FBR.49 MBR.49 FBR.50
-1  7.085  7.043  7.149  6.312
-2  6.996  6.999  7.105  6.170
-3  6.937  6.911  7.018  6.100
-4  6.937  6.839  6.989  6.057
-5  6.893  6.824  6.945  5.903
-6  6.864  6.751  6.916  5.777
+ > head(dat[,c(1:10)])
+  time.sec MSH.1 FSH.1 FSH.2 blank.1 blank.2 blank.3 FSH.3 MSH.3 FSH.4
+1        0 6.789 6.408 6.328   7.636   7.696   7.639 6.617 6.998 6.555
+2      300 6.745 6.293 6.142   7.606   7.651   7.639 6.544 6.984 6.484
+3      600 6.686 6.251 6.042   7.576   7.666   7.609 6.458 6.881 6.370
+4      900 6.657 6.194 5.971   7.606   7.666   7.594 6.385 6.881 6.327
+5     1200 6.555 6.109 5.844   7.576   7.636   7.624 6.270 6.852 6.256
+6     1500 6.570 6.052 5.830   7.606   7.651   7.609 6.227 6.779 6.228
  ```r
-</details>
+
