@@ -1,7 +1,7 @@
 # Automated hypoxia statistics from respirometry data
-An automated looping script designed to calculated hypoxia statistics from respirometry plates with multiple organisms per plate. 
+An automated looping script designed to calculated hypoxia statistics from respirometry chambers with multiple organisms at once. 
 
-For context, a
+The point of making this script was to avoid having to calculate statistics for one organism at a time. I wanted a fast way to take data from multiple chambers of a respirometer, and analyzing it all at once. For context, you can see the type of respirometer plate I use to collect data, along with a zoomed in look at the aquatic chamber where I put small marine zooplankton. 
 
 <table>
   <tr>
