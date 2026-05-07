@@ -1,8 +1,16 @@
 # Automated hypoxia statistics from respirometry data
-An automated looping script designed to calculated hypoxia statistics from respirometry plates with multiple organisms per plate
+An automated looping script designed to calculated hypoxia statistics from respirometry plates with multiple organisms per plate. 
 
-<img src="Figures/02-28-23 722 full.jpg" width="600">
-Above: A typical round of oxygen consumption on a plate respirometer. Each line represents a single organism in a single well on the plate.
+For context, a
+
+<table>
+  <tr>
+    <td><img src="figures/image1.jpg" width="350"></td>
+    <td><img src="figures/image2.jpg" width="350"></td>
+  </tr>
+</table>
+
+
 
 ## Problem 1: I needed to be able to analyze data from dozens of individuals at once measured simultaneously on a plate respirometer. 
 Per individual organism, I needed to be able to calculate multiple statistics that estimate tolerance to decreasing oxygen in the environment. 
@@ -121,3 +129,8 @@ Next, we select the respiromtry file of our choosing using a blank `file.choose(
 ```
 
 NOTE: This could be modified to loop over many files in a directory, if desired. For my purposes, I needed to work with one respirometer plate run at a time to trouble shoot our respirometer or inspect, so it made more sense to operate at the single file level. 
+
+
+
+<img src="Figures/02-28-23 722 full.jpg" width="600">
+Above: A typical round of oxygen consumption on a plate respirometer. Each line represents a single organism in a single well on the plate.
