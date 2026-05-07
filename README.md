@@ -62,7 +62,7 @@ Some of the packages that will be doing heavy lifting in our script are `respiro
 
 The script is set up to handle respirometry data in a simple, but specific format. The data must be: 
 - Organized by column, where each column represents one individual
-- The column names must be in the format group.1, where group represents treatments (if present) and the number represents the replicate for that treatment
+- The column names must be in the format `group.1`, where group represents treatments (if present) and the number represents the replicate for that treatment
 - There must be a `.` between the group and replicate values. We will use this separater to parse this info later
 - Blanks must be denoted using the same pattern, in the format `blank.1`
 - The first column is named `time.sec` and contains the respirometry run time in seconds (this can be modified if desired, as we wlll go over below)
