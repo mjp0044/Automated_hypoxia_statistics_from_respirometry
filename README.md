@@ -60,6 +60,7 @@ Some of the packages that will be doing heavy lifting in our script are `respiro
 
 ## Data formatting
 
+### Respirometry data
 The script is set up to handle respirometry data in a simple, but specific format. The data must be: 
 - Organized by column, where each column represents one individual
 - The column names must be in the format `group.1`, where group represents treatments (if present) and the number represents the replicate for that treatment
@@ -80,4 +81,21 @@ Here is a snapshot of the first 10 columns of the example data in its proper for
 5     1200 6.555 6.109 5.844   7.576   7.636   7.624 6.270 6.852 6.256
 6     1500 6.570 6.052 5.830   7.606   7.651   7.609 6.227 6.779 6.228
  ```
+
+### Length or mass data for standardizing metabolic rate
+
+The script is set up to automatically standardize metabolic rate data by any desired values such as the body length or mass of an individual. 
+
+This data needs to be in a simple two column format where the first column is named `ID` and the second column can have whatever name you choose. 
+
+```r
+> head(datum)
+      ID Totlen
+1 MBOB.1  1.494
+2 MBOB.3  1.548
+3 FBOB.3  1.640
+4 FSD.21  1.736
+5 MSD.22  1.667
+6 FSD.22  1.463
+```
 
