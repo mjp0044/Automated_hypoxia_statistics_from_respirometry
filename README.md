@@ -70,6 +70,7 @@ The script is set up to handle respirometry data in a simple, but specific forma
 Here is a snapshot of the data in its proper format in the dropdown below:
 
 <details>
+ ```r
  >   head(dat) #View top of data frame to check contents
   time.sec MSH.1 FSH.1 FSH.2 blank.1 blank.2 blank.3 FSH.3 MSH.3 FSH.4 MSH.5 FSH.5 FSH.6 MBR.39 MBR.40 MBR.53 FBR.53 MBR.54 FBR.54 MBR.56 FBR.47
 1        0 6.789 6.408 6.328   7.636   7.696   7.639 6.617 6.998 6.555 6.595 6.501 6.953  7.308  7.057  7.279  6.990  7.208  7.057  7.036  6.899
@@ -85,4 +86,5 @@ Here is a snapshot of the data in its proper format in the dropdown below:
 4  6.937  6.839  6.989  6.057
 5  6.893  6.824  6.945  5.903
 6  6.864  6.751  6.916  5.777
+ ```r
 </details>
