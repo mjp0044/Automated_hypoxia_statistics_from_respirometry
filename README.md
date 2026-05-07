@@ -16,9 +16,9 @@ The point of making this script was to avoid having to calculate statistics for 
 Per individual organism, I needed to be able to calculate multiple statistics that estimate tolerance to decreasing oxygen in the environment. 
 
 These included: 
-- Alpha (oxygen supply capacity)
-- *P*<sub>crit</sub> (segmented broken stick)
-- non-linear *P*<sub>crit</sub> (NLR) 
+- Alpha (a.k.a. oxygen supply capacity)
+- *P*<sub>crit</sub> 
+- non-linear *P*<sub>crit</sub> 
 - regulation index (RI)
 
 For extra information on what these statistics are and represent, check the dropdown box below. 
