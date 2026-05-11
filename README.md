@@ -502,4 +502,4 @@ It looks like this:
 ```
 
 
-<img src="Figures/FSH 2-28-23 722 pcrit graph.jpg" width="600">
+<img src="Figures/FSH 2-28-23 722 pcrit graph.png" width="600">
