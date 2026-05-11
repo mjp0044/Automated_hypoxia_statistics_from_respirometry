@@ -478,3 +478,28 @@ First, we use the `make_bins`, `calc_MO2`, `calc_pcrit`, `calc_alpha` functions 
             )
 ```
 
+Next, I generate the graph showing the calculations across the oxygen values using the `plot_pcrit` function from `respirometry`. 
+
+It looks like this: 
+
+```r
+#plot pcrit and alpha
+  plot_pcrit(
+    po2=mo$O2_MEAN,
+    mo2=mo$MO2.norm,
+    method = "All",
+    avg_top_n = 1,
+    level = 0.95,
+    iqr = 1.5,
+    NLR_m = 0.065,
+    MR = NULL,
+    mo2_threshold = Inf,
+    ylim = c(min(mo$MO2.norm-0.0001), max(mo$MO2.norm+0.0001)),
+    ylab=Ylab_expression,
+    xlab=Xlab_expression,
+  )
+  title(main = colnames(dat2[i]), adj=0)
+```
+
+
+<img src="Figures/FSH 2-28-23 722 pcrit graph.jpg" width="600">
