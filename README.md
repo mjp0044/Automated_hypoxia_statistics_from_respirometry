@@ -42,7 +42,7 @@ I also needed to generate *multiple* graphs showing these calculations on a per 
 Not all individuals consume oxygen at the same rate. The statistics I calculate use the entire curve of oxygen consumption, from normoxia to when the organisms stops actively respiring. So, I need to trim noisy data from the start of runs and find the point at which oxygen consumption stops on a per individual basis. 
 
 ### I generated a script that takes care of these issues with one click. 
-The script called `Combined Resp Script.R ` is available in this repository, along with sample data called `example_resp_data.csv`. 
+The script called `Combined Resp Script.R ` is available in this repository, along with sample data called `example_resp_data.csv`. Once the user has updated the names of output files in the script, it will produce graphs, pdfs, and results tables in one go. 
 
 Below, let's walk through how to set up data to use this script and what it does. 
 
@@ -244,7 +244,7 @@ br_pal <- met.brewer("Juarez")
 ```
 <img src="Figures/br_pal.png" width="300">
 
-We will pull the first, second, third, and fifth colors since I am plotting four groups at a time in the example data. More can be take from other palettes if desired using the same method. 
+We will pull the first, second, third, and fifth colors since I am plotting four groups at a time in the example data. More can be take from other palettes if desired using the same method. Then, we combine with the color black for the blank chambers. 
 
 ```r
 my_pal <- c("black", br_pal[c(1,2,3,5)])
@@ -274,3 +274,136 @@ p1 <- ggplot(dat_long,
   p1 #View graph
 ```
 <img src="Figures/02-28-23 722 full.jpg" width="600">
+Now, we can see the blanks at the top and all the oxygen values falling in chambers containing organisms. 
+
+Now, let's address problem 2. We need to standardize these oxygen curves. 
+
+Right now, they plateau at different times and this could bias calculations on a per individual basis. 
+
+So, I used the `runner` package to calculate slopes in a sliding window along the curve and truncate the data at one hour post plateau. If the data ends before the hour cut-off, the code automatically tells you that all the data was used. 
+
+This code block runs a for-loop over the columns and replaces oxygen values past the one-hour mark with NAs. 
+
+It also marks the cutoff point at the hour mark so we can label this point on the graph we will make. It generates two new data frames for plotting and for the rest of the script called "plateau.dat" and "dat_long_unique". 
+
+It's a lot of code, so I won't break it down line by line. But it is fully annotated below:  
+
+```r
+#Use dat or datb on first line to test trimming
+  dat %>% 
+    select(-contains("blank")) -> dat2
+#Reset row numbers
+  rownames(dat2) <- NULL
+
+#This code will calculate the slope of the DO2 data vs time (i.e., MO2) 
+#When MO2 reaches below a certain threshold (i.e., where the slope > -0.001, a.k.a when the data plateaus)
+#it will mark this point in the data, add an hour, and then trim the data beyond that added hour for each individual sample
+
+#create data frame with 0 rows and 4 columns to hold plateau point data for later
+  plateau.dat <- data.frame(matrix(ncol = 4, nrow = 0)) 
+#provide column names for empty data frame
+  colnames(plateau.dat) <- c('variable', 'rowindex', 'time.min', 'value')
+  
+  for(i in 2:ncol(dat2)) {
+    
+    cutoff.df <- data.frame(a = dat2[,1], b = dat2[,i]) #Assign time and sample columns to data frame
+    rowindex <- nrow(cutoff.df) #Get length of rows in dataframe
+    
+    #Using a sliding window of 45 data points (~3 hours worth), calculate the slope of the O2 values (i.e., MO2) and save as object
+    #Use lag of 10 to make the window start 30 data points in just in case the first 50 minutes happen to have a slope too close to 0
+    slidingslopes <- runner(x = cutoff.df, k = 45, lag = -30,
+                   f = function(x) {
+                     model <- lm(b ~ a, data = x)
+                     coefficients(model)[]
+                   }
+    )
+  
+    slidingslopes2 <- as.data.frame(t(slidingslopes)) #assign slopes to data frame
+    slidingslopes2$a <- format(slidingslopes2$a, scientific = F) #remove scientific notation
+    suppressWarnings(slidingslopes2$a <- round(as.numeric(slidingslopes2$a), digits = 5)) #round vlaues to 5 decimal points
+    
+  #Apply threshold for slope. Default to slope less than 0.0001 in magnitude
+  #Save line number of where slope becomes less than 0.001
+  #If no slope is calculated to be close to 0 (i.e., flat), it defaults to NA.
+    slopecutoff <- which(slidingslopes2$a > -0.0001) 
+  
+  #if statement to take care of instance where we never hit a slope of 0
+  #Tests to see if slopecutoff is NA. If it is, it defaults slopecutoff to just be the last row of the dataset to use all the data
+    slopecutoff <- ifelse(is.na(slopecutoff[1]), rowindex-12, slopecutoff) 
+    
+    cutoff.start <- slopecutoff[1] #Get row where plateau starts
+    cutoff.start.plushour <- cutoff.start+12 #add an hour+1 past plateau start
+    cutoff.start.plushour.andone <- cutoff.start.plushour+1 #Store next data point row number
+  
+  #As long as cutoff is less than last row of dataset, apply NA's to values after the cutoff
+    if (cutoff.start.plushour < rowindex) {
+      dat2[cutoff.start.plushour.andone:rowindex, i] <- NA
+      } else {
+      print(paste("All data used with", colnames(dat2[i])))
+      }
+    
+    #Assign plateau point information to plotting data frame for making figure below
+    plateau.dat[nrow(plateau.dat) + 1,] <- list(colnames(dat2[i]),cutoff.start.plushour, dat2[cutoff.start.plushour,1], dat2[cutoff.start.plushour,i])
+    
+  } 
+  plateau.dat[c('group', 'replicate')] <- str_split_fixed(plateau.dat$variable, '[.]', 2) #split ID column into groups
+#Need to sort frame based on plateau point order
+  plateau.dat <- arrange(plateau.dat, time.min)
+#create another variable with sequence of y-values for plotting so that the labels decrease high to low on the plot
+  yvalues <- seq(from =17, to=9, length.out=nrow(plateau.dat))
+  plateau.dat <- cbind(plateau.dat, yvalues)
+  plateau.dat %>% replace_na(list(time.min = max(dat2$time.min), value = 0)) -> plateau.dat
+
+#Relevel group labels, use line above again if you want to confirm it worked
+#plateau.dat$group <- factor(plateau.dat$group, levels = c("blank", "MBOB", "FBOB", "MSD", "FSD"))
+#Check order of variables and put in order of peaks appearance
+#levels(plateau.dat$group)
+
+#Make plot of individually trimmed data
+# Plot oxygen consumption graph for whole plate (use dat or datb to test trimming)
+  dat_long_unique <- melt(dat2, id = "time.min")
+  head(dat_long_unique)
+  dat_long_unique[c('group', 'replicate')] <- str_split_fixed(dat_long_unique$variable, '[.]', 2)
+
+#Check column formats
+  str(dat_long_unique)
+
+#Append blank wells back onto the end of the cutoff data frame
+  dat_long_unique <- rbind(dat_long_unique, dat_long[dat_long$group == "blank",])
+
+#Reclassify group as factor
+  dat_long_unique$group = as.factor(dat_long_unique$group)
+
+#Check order of variables and put in order of peaks appearance
+  levels(dat_long_unique$group)
+
+#Relevel group labels, use line above again if you want to confirm it worked
+#dat_long_unique$group <- factor(dat_long_unique$group, levels = c("blank", "MBR", "FBR", "MSD", "FSD"))
+
+```
+
+The end product when we generate another line graph looks like this: 
+
+```r
+#Make plot2
+  p2 <- ggplot(dat_long_unique,            
+               aes(x = time.min, y = value, group = variable, color=group))+
+    theme_bw()+
+    theme(legend.position = "bottom", legend.direction = "horizontal", 
+          legend.key.size = unit(1, "lines"))+
+    theme(panel.grid.minor = element_blank())+
+    scale_x_continuous(n.breaks = 10, limits = c(0, 1600), expand= c(0.01,0),
+                       sec.axis = sec_axis(~ . /60, name="Time in hours", breaks=c(0,5,10,15,20,25,30,35,40)))+
+    scale_y_continuous(n.breaks=9, limits=c(-1,25))+
+    ylab(expression(paste(PO[2], " (kPa ", O[2], ")")))+xlab("Time in minutes")+
+    geom_line(linewidth=0.75)+
+    scale_color_manual("Groups:", values=my_pal)+
+    geom_segment(data = plateau.dat, aes(time.min, value, xend = time.min, yend = yvalues))+
+    geom_text(data = plateau.dat,
+              aes(time.min-5, yvalues, label = paste(variable,":",time.min,"min.")), check_overlap = FALSE, size=2.5, hjust=-0.1)
+  
+  p2 #View graph
+```
+
+<img src="Figures/02-28-23 722 UNIQUE.jpg" width="600">
+
