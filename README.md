@@ -128,7 +128,42 @@ Next, we select the respiromtry file of our choosing using a blank `file.choose(
   dat=read.csv(file.choose())
 ```
 
-NOTE: This could be modified to loop over many files in a directory, if desired. For my purposes, I needed to work with one respirometer plate run at a time to trouble shoot our respirometer or inspect, so it made more sense to operate at the single file level. 
+NOTE: This could be modified to loop over many files in a directory, if desired. For my purposes, I needed to work with one respirometer plate run at a time to trouble shoot our respirometer or inspect individual plate data, so it made more sense to operate at the single file level. 
+
+The respirometry system I used records the time in seconds during the run. However, the R package expects the time to be in minutes. 
+
+So, we convert by:
+
+```r
+time.min = dat$time.sec/60
+  dat = cbind(time.min, dat)
+> head(dat[,c(1:10)])
+   time.min time.sec MSH.1 FSH.1 FSH.2 blank.1 blank.2 blank.3 FSH.3 MSH.3
+14       65     3900 6.308 5.618 5.339   7.606   7.636   7.624 5.843 6.547
+15       70     4200 6.280 5.576 5.270   7.606   7.666   7.639 5.829 6.490
+16       75     4500 6.265 5.521 5.298   7.651   7.681   7.670 5.815 6.446
+17       80     4800 6.193 5.507 5.270   7.666   7.696   7.716 5.815 6.475
+18       85     5100 6.193 5.507 5.229   7.726   7.726   7.731 5.801 6.461
+19       90     5400 6.193 5.507 5.215   7.741   7.801   7.792 5.702 6.475
+```
+
+Next, the script trims the first hour of the run from the data to remove the initial temperature equilibration period and noise at the start of the run. 
+
+```r
+#remove first 1 hours. Change number of rows to fit data file.
+  dat=dat[-(1:13),]
+  dat$time.min=dat$time.min - 65   #Subtract from time.min column to artificially change time values to start at 0
+  dat=dat[,-(2)]
+ > head(dat[,c(1:10)])
+   time.min MSH.1 FSH.1 FSH.2 blank.1 blank.2 blank.3 FSH.3 MSH.3 FSH.4
+27       65 6.050 5.300 4.817   7.801   7.876   7.822 5.590 6.360 5.378
+28       70 6.050 5.313 4.749   7.831   7.891   7.868 5.576 6.346 5.378
+29       75 6.035 5.217 4.776   7.846   7.891   7.822 5.534 6.274 5.310
+30       80 6.007 5.204 4.722   7.861   7.922   7.884 5.534 6.274 5.269
+31       85 6.007 5.176 4.627   7.891   7.937   7.914 5.548 6.246 5.228
+32       90 5.993 5.163 4.586   7.891   7.937   7.914 5.492 6.117 5.200
+```
+
 
 
 
