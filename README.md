@@ -569,6 +569,9 @@ After the script finishes, the final data table with the statistics listed per c
 6 FSH.4 0.0005101209   4.541118 3.072370  0.8321
 ```
 
+A lot of work for something so simple. But now I can calculate these statistics for 24 chambers at once instead of 1 at a time. I'd call that a win. 
+
+
 Here's the fully annotated loop for anyone interested: 
 
 ```r
