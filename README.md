@@ -228,5 +228,23 @@ dat_long[c('group', 'replicate')] <- str_split_fixed(dat_long$variable, '[.]', 2
 [1] "blank" "FBR"   "FSH"   "MBR"   "MSH"
 ```
 
+Now we can start plotting! 
+
+Making beatiful plots is an art form (no seriously), so I like to integrate art into my color palettes. 
+
+I love the `met.brewer` package by Blake Mills. It is a collection of palettes inspired by pieces at the metropolitan museum of art. 
+
+I recommend checking the `met.brewer` GitHub page [here](https://github.com/BlakeRMills/MetBrewer): 
+
+I chose to pull colors from the "Juarez" palette. Using the `show_col` function from `scales` we can preview it: 
+
+```r
+br_pal <- met.brewer("Juarez")
+  scales::show_col(br_pal)
+```
+<img src="Figures/02-28-23 722 full.jpg" width="600">
+
+
+
 <img src="Figures/02-28-23 722 full.jpg" width="600">
 Above: A typical round of oxygen consumption on a plate respirometer. Each line represents a single organism in a single well on the plate.
