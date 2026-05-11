@@ -164,8 +164,69 @@ Next, the script trims the first hour of the run from the data to remove the ini
 32       90 5.993 5.163 4.586   7.891   7.937   7.914 5.492 6.117 5.200
 ```
 
+Next, we reset the row names to start the numbering back at row 1 after removing the first hour. 
 
+```r
+rownames(dat) <- NULL
+> head(dat[,c(1:10)])
+  time.min MSH.1 FSH.1 FSH.2 blank.1 blank.2 blank.3 FSH.3 MSH.3 FSH.4
+1       65 6.050 5.300 4.817   7.801   7.876   7.822 5.590 6.360 5.378
+2       70 6.050 5.313 4.749   7.831   7.891   7.868 5.576 6.346 5.378
+3       75 6.035 5.217 4.776   7.846   7.891   7.822 5.534 6.274 5.310
+4       80 6.007 5.204 4.722   7.861   7.922   7.884 5.534 6.274 5.269
+5       85 6.007 5.176 4.627   7.891   7.937   7.914 5.548 6.246 5.228
+6       90 5.993 5.163 4.586   7.891   7.937   7.914 5.492 6.117 5.200
+```
 
+Our system records oxygen values in mg oxygen per liter. However, the `respirometry` package calculations perform better when the units are converted to kPa. Plus most publications report *P*<sub>crit</sub> in kPa. 
+
+To make this conversion, we take advantage of the `presens` package's built-in conversion function.
+
+We will loop over the columns in the data frame and convert each to kPa in one go, making sure to set the salinity, temperature, and air pressure that match our conditions.
+
+```r
+for(i in 2:ncol(dat)) {
+    dat[ , i] <- o2_unit_conv(o2 = dat[ , i], from = "mg_per_l", to = "kPa", salinity = 35,
+                               temp = 20, air_pres = 1.013253)
+  }
+```
+
+Before the script calculates the respirometry stats, I also wanted to generate plots that let us visualize the run in full. 
+
+To do that, we will flip the data lengthwise using the `melt` function from `reshape2` where we organize the data by time. Below, you can see this creates a data frame with three columns, the first with the time values, the second with the sample ID and the last with the oxygen value in kPa. Using the `levels` function, we can see all the samples are now ordered lengthwise in the variable column. 
+
+```r
+# Plot oxygen consumption graph for whole plate (use dat or datb to test trimming)
+  dat_long <- melt(dat, id = "time.min")
+  >   head(dat_long)
+  time.min variable    value
+1       65    MSH.1 17.24216
+2       70    MSH.1 17.24216
+3       75    MSH.1 17.19942
+4       80    MSH.1 17.11962
+5       85    MSH.1 17.11962
+6       90    MSH.1 17.07972
+
+>   levels(dat_long$variable)
+ [1] "MSH.1"   "FSH.1"   "FSH.2"   "blank.1" "blank.2" "blank.3" "FSH.3"   "MSH.3"   "FSH.4"   "MSH.5"   "FSH.5"   "FSH.6"   "MBR.39"  "MBR.40"  "MBR.53" 
+[16] "FBR.53"  "MBR.54"  "FBR.54"  "MBR.56"  "FBR.47"  "MBR.47"  "FBR.49"  "MBR.49"  "FBR.50"
+```
+
+Next, we will split the variable column into two new columns that help us organize the data and plot by treatment group. I use the `str_split_fixed` function from `stringr` and reclassify the group variable as a factor in case I want to re-order the groups later. 
+
+```r
+dat_long[c('group', 'replicate')] <- str_split_fixed(dat_long$variable, '[.]', 2)
+
+#Reclassify group as factor
+  dat_long$group = as.factor(dat_long$group)
+
+#Relevel group labels (OPTIONAL)
+#dat_long$group <- factor(dat_long$group, levels = c("blank", "MBR", "FBR", "MSD", "FSD"))
+
+#Check order of variables and put in order of peaks appearance
+>   levels(dat_long$group)
+[1] "blank" "FBR"   "FSH"   "MBR"   "MSH"
+```
 
 <img src="Figures/02-28-23 722 full.jpg" width="600">
 Above: A typical round of oxygen consumption on a plate respirometer. Each line represents a single organism in a single well on the plate.
