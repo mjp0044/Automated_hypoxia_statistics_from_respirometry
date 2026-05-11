@@ -10,8 +10,6 @@ The point of making this script was to avoid having to calculate statistics for 
   </tr>
 </table>
 
-
-
 ## Problem 1: I needed to be able to analyze data from dozens of individuals at once measured simultaneously on a plate respirometer. 
 Per individual organism, I needed to be able to calculate multiple statistics that estimate tolerance to decreasing oxygen in the environment. 
 
@@ -427,6 +425,8 @@ Next, the script uses a for-loop to iterate over the trimmed dat2 data frame.
 
 This for loop is wrapped in a call to the `pdf` function so that the figures for each chamber are exported as a clean pdf book you can flip through. 
 
+As the script loops over the data, it spits the results of each loop in a short simple summary to standard out so you can view the progress. 
+
 Like the code block to trim the data, this loop contains many lines of code that would be quite boring to review line by line, but I'll go over some key parts below: 
 
 First, we use the `make_bins`, `calc_MO2`, `calc_pcrit`, `calc_alpha` functions from the `respirometry` package to bin the oxygen data, calculate metabolic rate, calculate *P*<sub>crit</sub> and calculate Alpha, respectively. 
@@ -502,4 +502,336 @@ It looks like this:
 ```
 
 
-<img src="Figures/FSH 2-28-23 722 pcrit graph.png" width="600">
+<img src="Figures/FSH 2-28-23 722 pcrit graph.png" width="400">
+
+
+To calculate RI, the loop makes several area under the curve calculations over the oxygen values. It ends up saving these in an intermediate data frame to be accessed for plotting and filling out the final table of statistics. 
+
+Like with *P*<sub>crit</sub> and Alpha, I generate a plot of the RI calculation and use the `print` command to send it to the pdf. 
+
+```r
+print(
+    ggplot(resp.plot, aes(x=DO)) +
+    geom_line(aes(y=MO2), color="black")+
+    geom_line(aes(y=regline), lty = "twodash")+
+    geom_line(aes(y=conline), lty = "twodash")+
+    geom_ribbon(data=subset(resp.plot, 0 <= DO & DO <= 100), 
+                aes(ymin=conline,ymax=MO2), fill="red", alpha=0.5) +
+    geom_ribbon(data=subset(resp.plot, 0 <= DO & DO <= 100), 
+                aes(ymin=MO2,ymax=regline), fill="blue", alpha=0.5) +
+    geom_point(aes(y=MO2))+
+    theme_cowplot()+
+    xlab(Xlab_expression)+ylab(Ylab_expression)+
+      annotate("text", 
+               x = max(resp.plot$DO) - 1, 
+               y = min(resp.plot$MO2), 
+               label = paste("RI =", RIplot$RIplot$RI_final),
+               hjust = 1)+
+      ggtitle(colnames(dat2[i]))
+    )
+  
+  plot.dat=cbind(dat2$time.min, dat2[i])
+```
+<img src="Figures/FSH 2-28-23 RI graph.png" width="400">
+
+
+For good measure, I also generate a single curve for the current chamber to go alone with these two graphs in the final pdf:
+```r
+print(
+    ggplot(plot.dat, aes(x = plot.dat[,1], y=plot.dat[,2]))+
+      theme_bw()+
+      theme(panel.grid.minor = element_blank())+
+      scale_x_continuous(n.breaks = 10, limits = c(0, 1600), expand= c(0.01,0))+
+      scale_y_continuous(n.breaks=8, limits=c(-0.5,23))+
+      ylab(expression(paste(PO[2], " (kPa ", O[2], ")")))+xlab("Time in minutes")+
+      geom_line(size=1)+
+      ggtitle(colnames(dat2[i]))
+  )
+```
+<img src="Figures/FSH 2-28-23 oxygen consumption graph.png" width="400">
+
+At the end of the loop, the statistics get added to our empty data frame one line at a time. 
+
+```r
+calcs[nrow(calcs) + 1,] <- list(colnames(dat2[i]),calc.a[[1]], calc[[2]], calc[[4]], RIplot$RIplot$RI_final)
+```
+
+After the script finishes, the final data table with the statistics listed per chamber looks like this!
+
+```r
+> head(calcs)
+     ID        Alpha Breakpoint      NLR      RI
+1 MSH.1 0.0006180817  12.742611 2.488789 -0.3167
+2 FSH.1 0.0008342336   7.114900 2.853458  0.8038
+3 FSH.2 0.0005722186   4.535303 4.824304  0.7114
+4 FSH.3 0.0008911265   9.066930 3.994767  1.0553
+5 MSH.3 0.0006212438   3.160121 3.651739  1.0934
+6 FSH.4 0.0005101209   4.541118 3.072370  0.8321
+```
+
+Here's the fully annotated loop for anyone interested: 
+
+```r
+#To have all plots export to pdf, run pdf line at the start and then dev.off() at the end after for loop
+pdf(file='test plots.pdf')
+#Run for loop over data frame with oxygen data
+  for(i in 2:ncol(dat2)) {
+
+    
+#make bins that account for changes of rates at different PO2.
+  bins=make_bins(
+    o2= dat2[ , i],
+    duration=dat2$time.min,
+    min_o2_width = 1/100,
+    max_o2_width = 1/20,
+    n_thresholds = 10
+  )
+
+#Calculate MO2 and mean 02 (and other statistics)
+#MO2 is expressed as unit oxygen in umol (micromoles) consumed per hour but can convert below
+  mo=calc_MO2(
+    duration=dat2$time.min,
+    o2=dat2[ , i],
+    o2_unit = "kPa",
+    bin_width = bins,
+    vol = 0.00008,
+    temp = 20,
+    sal = 35,
+    atm_pres = 1013.25,
+    good_data = TRUE
+  )
+
+#Remove lines with NA's so the calculation below does not freeze
+  #mo = na.omit(mo)
+  mo=mo[!is.na(mo$O2_MEAN) & !is.na(mo$MO2),]
+  
+  # mo=droplevels(mo)
+  # rownames(mo) <- NULL
+
+#If you want to express MO2 in kPa O2 per min instead. Default is umol O2 per hour. 
+  #mo$MO2 <- conv_resp_unit(value = mo$MO2, from = 'umol / hr', to = 'kPa / min', temp = 20)
+
+#Calculate mass or length specific MO2 values for a given sample
+    #Get sample ID of current loop iteration
+    sampleID <- colnames(dat2[i])
+    #Get row from mass or length from data frame
+    sampleIDrow <- subset(datum, ID == sampleID)
+    #Isolate just the length or mass value
+    sampleIDvalue <- sampleIDrow[1,2]
+    #Normalize all MO2 values by mass or length value and save as new column in 'mo' dataframe
+    mo$MO2.norm <- mo$MO2/sampleIDvalue
+
+#Calculate pcrit
+  calc <- calc_pcrit(
+    po2=mo$O2_MEAN,
+    mo2=mo$MO2.norm, 
+    method = "All",
+    avg_top_n = 1, 
+    level = 0.95,
+    iqr = 1.5, 
+    NLR_m = 0.065,
+    MR = NULL,
+    mo2_threshold = Inf,
+    return_models = FALSE)
+
+#Calculate alpha
+  #Units will be in kPa O2 / mm / hr / kPa
+  calc.a <- calc_alpha(po2=mo$O2_MEAN, 
+             mo2=mo$MO2.norm, 
+             avg_top_n = 1, 
+             MR = NULL, 
+             mo2_threshold = Inf
+            )
+
+#plot pcrit and alpha
+  plot_pcrit(
+    po2=mo$O2_MEAN,
+    mo2=mo$MO2.norm,
+    method = "All",
+    avg_top_n = 1,
+    level = 0.95,
+    iqr = 1.5,
+    NLR_m = 0.065,
+    MR = NULL,
+    mo2_threshold = Inf,
+    ylim = c(min(mo$MO2.norm-0.0001), max(mo$MO2.norm+0.0001)),
+    ylab=Ylab_expression,
+    xlab=Xlab_expression,
+  )
+  title(main = colnames(dat2[i]), adj=0)
+#text(x = max(mo$O2_MEAN-0.2), y = min(mo$MO2), colnames(dat2[i]), col="darkgreen", cex=1.2)
+
+#RI calculation and plotting
+  test.frame = as.data.frame(cbind(mo$O2_MEAN, mo$MO2.norm))
+  test.frame <- rename(test.frame, DO=V1)
+  test.frame <- rename(test.frame, MO2=V2)
+
+#Get average oxygen consumption at early and late stages of trial, if desired
+#From normoxia to 3.5 mg/L O2
+#   upper.test.frame=subset(test.frame, DO >= 10 & MO2 != "NA")
+#   upper.rate <- mean(upper.test.frame$MO2)
+# #From 3.5 mg/L O2 to 0.1 mg/L O2
+#   lower.test.frame=subset(test.frame, DO <= 10 & DO >= 0 & MO2 != "NA")
+#   lower.rate <- mean(lower.test.frame$MO2)
+
+  #For each of the below calculations, the spline, regline and conline, use the same span
+
+  #Calculate area under curve for sample data using spline
+      #Runs your linear model over a certain span
+      lo <- loess(test.frame$MO2~test.frame$DO, span=0.50)
+      #Gathers your sequence of dissolved oxygen values using min and max values in data file
+      xl <- seq(min(test.frame$DO),max(test.frame$DO), (max(test.frame$DO) - min(test.frame$DO))/1000)
+      #Make a new data frame using only complete cases with DO2 and MO2 values
+      na <-test.frame[complete.cases(test.frame[, 2]), ]
+      #Generate predicted MO2 values using model from above and DO2 values
+      MO2<- predict(lo,na$DO)
+      #Bind model predicted values and DO2 values together
+      resp<-cbind(na$DO, MO2)
+      resp <- as.data.frame(resp)
+      colnames(resp) <- c("DO", "MO2")
+      resp <- aggregate(MO2 ~ DO, data = resp, FUN = mean)
+      resp <- resp[order(resp$DO), ]
+      #Calculate area under the curve bounded by X axis using basic splice
+      pattern <- auc(resp$DO, resp$MO2, type = "spline")
+      pattern
+      
+      #Assign predicted MO2 values and DO2 values to data frame for plotting. 
+      resp.plot <- resp  # already has DO and MO2 columns
+  
+  #Calculate auc for perfect regulatory line
+      lo <- loess(test.frame$MO2~test.frame$DO, span=0.50)
+      xl <- seq(min(test.frame$DO),max(test.frame$DO), (max(test.frame$DO) - min(test.frame$DO))/1000)
+      na <-test.frame[complete.cases(test.frame[, 2]), ]
+      n<-length(na$MO2)
+      #Get max predicted MO2
+      max_MO2<- max(predict(lo,xl), na.rm=T)
+      #Get max MO2 at highest DO2 value
+      #max_MO2 <- resp[1,2]
+      #Repeat max MO2 value as many times over as the number of DO2 values you have
+      max_MO2_rep<-rep(max_MO2, n)
+      #Bind maxMO2 values to DO2 values and deduplicate
+      max_MO2_rep <- as.data.frame(cbind(na$DO, max_MO2))
+      colnames(max_MO2_rep) <- c("DO", "MO2")
+      max_MO2_rep <- aggregate(MO2 ~ DO, data = max_MO2_rep, FUN = mean)
+      max_MO2_rep <- max_MO2_rep[order(max_MO2_rep$DO), ]
+      #Calculate auc for regulatory line
+      max_auc <- auc(max_MO2_rep$DO, max_MO2_rep$MO2, type = "spline")
+      
+      #Add regulatory line values to plotting data frame
+      resp.plot$regline <- max_MO2_rep$MO2
+  
+  
+  #Calculate auc for perfect conformity line
+      r = subset(test.frame, test.frame$MO2>0)
+      lo <- loess(test.frame$MO2~test.frame$DO, span=0.50)
+      xl <- seq(min(test.frame$DO),max(test.frame$DO), (max(test.frame$DO) - min(test.frame$DO))/1000)
+      #Get max M02 from predicted data
+      #max_MO2<- max(predict(lo,xl), na.rm=T)
+      #Get max MO2 at highest DO2 value
+      max_MO2 <- resp[1,2]
+      #Get starting DO from resp frame, should match starting DO in test.frame (the original raw data)
+      min.DO<-resp[1, 1]
+      #Filter for complete cases
+      na <-resp[complete.cases(resp[, 2]), ]
+      #Get the slope between max_MO2 and startin DO2
+      slope<-max_MO2/min.DO
+      #Multiply slope down list of DO2 values to get MO2 y coordinates to plot
+      resp_min<-slope*na[ ,1]
+      #Bind y coordinates with DO2 values
+      con_MO2<-cbind(na[ ,1], resp_min)
+      con_MO2 <- as.data.frame(con_MO2)
+      colnames(con_MO2) <- c("DO", "MO2")
+      con_MO2 <- aggregate(MO2 ~ DO, data = con_MO2, FUN = mean)
+      con_MO2 <- con_MO2[order(con_MO2$DO), ]
+      #Calculate auc for conformity line
+      con_auc <- auc(con_MO2$DO, con_MO2$MO2, type = "spline")
+      
+      #Add conformitory values to plotting data frame
+      resp.plot$conline <- con_MO2$MO2
+  
+  
+#Cobmine filename and auc's of data line and two perfect lines
+  RIplot<-cbind(pattern, max_auc, con_auc)
+  RIplot<-as.data.frame(RIplot)
+  RIplot$pattern = as.numeric(RIplot$pattern)
+  RIplot$max_auc = as.numeric(RIplot$max_auc)
+  RIplot$con_auc = as.numeric(RIplot$con_auc)
+  
+#For RI>0 (RI_pos)
+  RIplot$RI_pos<-(RIplot$pattern-RIplot$con_auc)/(RIplot$max_auc-RIplot$con_auc)
+  
+#For RI<0 (RI_neg)
+  RIplot$RI_neg<-(-1)*(RIplot$con_auc-RIplot$pattern)/(RIplot$con_auc)
+  
+  RIplot$RI_final<-RIplot$RI_pos
+  
+#When RI$RI_pos is negative, use r$RI_neg
+  RIplot<-within(RIplot, RIplot$RI_final[RIplot$RI_final<0] <- (RIplot$RI_neg[RIplot$RI_final<0]))
+  
+  RIplot$RIplot$RI_final <- round(RIplot$RIplot$RI_final, 4)
+  
+  
+#Print name of column (i.e., name of well on microplate)
+  print(colnames(dat2[i]))
+#Print alpha and pcrit calculations
+  print(calc[2:5])
+  cat("Alpha =",calc.a[[1]])
+#Print RI for that individual
+  cat(" RI =",RIplot$RIplot$RI_final)
+  #print("")
+  
+#Generate plot with all three lines
+  print(
+    ggplot(resp.plot, aes(x=DO)) +
+    geom_line(aes(y=MO2), color="black")+
+    geom_line(aes(y=regline), lty = "twodash")+
+    geom_line(aes(y=conline), lty = "twodash")+
+    geom_ribbon(data=subset(resp.plot, 0 <= DO & DO <= 100), 
+                aes(ymin=conline,ymax=MO2), fill="red", alpha=0.5) +
+    geom_ribbon(data=subset(resp.plot, 0 <= DO & DO <= 100), 
+                aes(ymin=MO2,ymax=regline), fill="blue", alpha=0.5) +
+    geom_point(aes(y=MO2))+
+    theme_cowplot()+
+    xlab(Xlab_expression)+ylab(Ylab_expression)+
+      annotate("text", 
+               x = max(resp.plot$DO) - 1, 
+               y = min(resp.plot$MO2), 
+               label = paste("RI =", RIplot$RIplot$RI_final),
+               hjust = 1)+
+      ggtitle(colnames(dat2[i]))
+    )
+  
+  plot.dat=cbind(dat2$time.min, dat2[i])
+  
+  print(
+    ggplot(plot.dat, aes(x = plot.dat[,1], y=plot.dat[,2]))+
+      theme_bw()+
+      theme(panel.grid.minor = element_blank())+
+      scale_x_continuous(n.breaks = 10, limits = c(0, 1600), expand= c(0.01,0))+
+      scale_y_continuous(n.breaks=8, limits=c(-0.5,23))+
+      ylab(expression(paste(PO[2], " (kPa ", O[2], ")")))+xlab("Time in minutes")+
+      geom_line(size=1)+
+      ggtitle(colnames(dat2[i]))
+  )
+  
+  #Add pcrit values to data frame for export later
+  #Calcs is saved as a data frame so you can view the summary data for each well in tabular format
+  #Change name of data frame (calcs, calcs2, etc) to add data to whichever frame you want matching names from above
+  
+  #IMPORTANT FOR ALPHA. 
+  #To add the alpha value (not alpha pcrit) to the final frame calcs, you just need to replace 
+  #the second item in the list (calc[[1]]) with calc.a[[1]]. This pulls the actual alpha value from the calc.a frame instead.
+  
+    calcs[nrow(calcs) + 1,] <- list(colnames(dat2[i]),calc.a[[1]], calc[[2]], calc[[4]], RIplot$RIplot$RI_final)
+
+  } 
+  dev.off() #End for loop
+
+
+
+#export calcs data frame as excel .csv to use with other programs if desired
+#Changed cencoring parameters and saved other statistics data frames for comparison
+  write.csv(calcs,"Plate_Resp_Statistics_test.csv", row.names = FALSE)
+
+print("Goodbye")
+```
