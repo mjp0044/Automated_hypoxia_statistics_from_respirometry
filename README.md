@@ -284,7 +284,7 @@ So, I used the `runner` package to calculate slopes in a sliding window along th
 
 This code block runs a for-loop over the columns and replaces oxygen values past the one-hour mark with NAs. 
 
-It also marks the cutoff point at the hour mark so we can label this point on the graph we will make. It generates two new data frames for plotting and for the rest of the script called "plateau.dat" and "dat_long_unique". 
+It also marks the cutoff point at the hour mark so we can label this point on the graph we will make. It generates new data frames called "dat2", "plateau.dat", and "dat_long_unique". We will use dat2 for the respirometry calculations and the other two for plotting. 
 
 It's a lot of code, so I won't break it down line by line. But it is fully annotated below:  
 
@@ -406,4 +406,75 @@ The end product when we generate another line graph looks like this:
 ```
 
 <img src="Figures/02-28-23 722 UNIQUE.jpg" width="600">
+
+Now for the statistical calculations and plotting figures for each chamber. 
+
+To start, the script sets up an empty data frame to store the statistics and saves some labeling info for the plots. 
+
+```r
+#create data frame with 0 rows and 2 columns
+  calcs <- data.frame(matrix(ncol = 5, nrow = 0)) 
+
+#provide column names
+  colnames(calcs) <- c('ID', 'Alpha', 'Breakpoint', 'NLR', 'RI')
+
+#define axes labels with superscript to add to plots
+  Xlab_expression <- expression(paste(PO[2], " (kPa ", O[2], ")"))
+  Ylab_expression <- expression(paste("Metabolic rate ", MO[2] , " (uMol ", O[2], " ", hr^-1, ")"))
+```
+
+Next, the script uses a for-loop to iterate over the trimmed dat2 data frame. 
+
+This for loop is wrapped in a call to the `pdf` function so that the figures for each chamber are exported as a clean pdf book you can flip through. 
+
+Like the code block to trim the data, this loop contains many lines of code that would be quite boring to review line by line, but I'll go over some key parts below: 
+
+First, we use the `make_bins`, `calc_MO2`, `calc_pcrit`, `calc_alpha` functions from the `respirometry` package to bin the oxygen data, calculate metabolic rate, calculate *P*<sub>crit</sub> and calculate Alpha, respectively. 
+
+```r
+#make bins that account for changes of rates at different PO2.
+  bins=make_bins(
+    o2= dat2[ , i],
+    duration=dat2$time.min,
+    min_o2_width = 1/100,
+    max_o2_width = 1/20,
+    n_thresholds = 10
+  )
+
+#Calculate MO2 and mean 02 (and other statistics)
+#MO2 is expressed as unit oxygen in umol (micromoles) consumed per hour but can convert below
+  mo=calc_MO2(
+    duration=dat2$time.min,
+    o2=dat2[ , i],
+    o2_unit = "kPa",
+    bin_width = bins,
+    vol = 0.00008,
+    temp = 20,
+    sal = 35,
+    atm_pres = 1013.25,
+    good_data = TRUE
+  )
+
+#Calculate pcrit
+  calc <- calc_pcrit(
+    po2=mo$O2_MEAN,
+    mo2=mo$MO2.norm, 
+    method = "All",
+    avg_top_n = 1, 
+    level = 0.95,
+    iqr = 1.5, 
+    NLR_m = 0.065,
+    MR = NULL,
+    mo2_threshold = Inf,
+    return_models = FALSE)
+
+#Calculate alpha
+  #Units will be in kPa O2 / mm / hr / kPa
+  calc.a <- calc_alpha(po2=mo$O2_MEAN, 
+             mo2=mo$MO2.norm, 
+             avg_top_n = 1, 
+             MR = NULL, 
+             mo2_threshold = Inf
+            )
+```
 
