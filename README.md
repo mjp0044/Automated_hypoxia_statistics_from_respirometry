@@ -242,9 +242,35 @@ I chose to pull colors from the "Juarez" palette. Using the `show_col` function 
 br_pal <- met.brewer("Juarez")
   scales::show_col(br_pal)
 ```
+<img src="Figures/br_pal.png" width="300">
+
+We will pull the first, second, third, and fifth colors since I am plotting four groups at a time in the example data. More can be take from other palettes if desired using the same method. 
+
+```r
+my_pal <- c("black", br_pal[c(1,2,3,5)])
+  scales::show_col(my_pal)
+```
+<img src="Figures/my_pal.png" width="300">
+
+Now, lets use our lengthwise data to generate a line graph showing the decline in oxygen over the run. 
+
+We will color code the lines by the treatment groups and group the values by the sample ID (which still is just named 'variable'). 
+
+We will also display a second x-axis on the top of the graph in hours to accomodate showing very long runs using the `sec.axis` option in `scale_x_continuous`. 
+```r
+p1 <- ggplot(dat_long,            
+               aes(x = time.min, y = value, group = variable, color=group))+
+    theme_bw()+
+    theme(legend.position = "bottom", legend.direction = "horizontal", 
+          legend.key.size = unit(1, "lines"))+
+    theme(panel.grid.minor = element_blank())+
+    scale_x_continuous(n.breaks = 10, limits = c(0, 1600), expand= c(0.01,0),
+                       sec.axis = sec_axis(~ . /60, name="Time in hours", breaks=c(0,5,10,15,20,25,30,35,40)))+
+    scale_y_continuous(n.breaks=9, limits=c(-1,25))+
+    ylab(expression(paste(PO[2], " (kPa ", O[2], ")")))+xlab("Time in minutes")+
+    geom_line(linewidth=0.75)+
+    scale_color_manual("Groups:", values=my_pal)
+  
+  p1 #View graph
+```
 <img src="Figures/02-28-23 722 full.jpg" width="600">
-
-
-
-<img src="Figures/02-28-23 722 full.jpg" width="600">
-Above: A typical round of oxygen consumption on a plate respirometer. Each line represents a single organism in a single well on the plate.
