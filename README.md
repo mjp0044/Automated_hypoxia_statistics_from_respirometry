@@ -532,7 +532,7 @@ print(
   
   plot.dat=cbind(dat2$time.min, dat2[i])
 ```
-<img src="Figures/FSH 2-28-23 RI graph.png" width="400">
+<img src="Figures/FSH4 2-28-23 RI graph.png" width="400">
 
 
 For good measure, I also generate a single curve for the current chamber to go alone with these two graphs in the final pdf:
@@ -548,7 +548,7 @@ print(
       ggtitle(colnames(dat2[i]))
   )
 ```
-<img src="Figures/FSH 2-28-23 oxygen consumption graph.png" width="400">
+<img src="Figures/FSH4 2-28-23 oxygen consumption graph.png" width="400">
 
 At the end of the loop, the statistics get added to our empty data frame one line at a time. 
 
